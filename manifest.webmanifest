@@ -1,0 +1,11 @@
+{
+  "name": "Kirana Price Finder",
+  "short_name": "Kirana Finder",
+  "description": "Hindi, Hinglish and English voice-enabled kirana price finder and bill maker.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f8f6",
+  "theme_color": "#146c43",
+  "icons": [{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
+}

@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#146c43">
+<meta name="description" content="Hindi, Hinglish and English voice-enabled kirana price finder and bill maker.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<title>Kirana Price Finder</title>
+<style>
+:root{--green:#146c43;--green2:#e8f5ed;--ink:#18251e;--muted:#66736b;--line:#dce5df;--bg:#f5f8f6;--white:#fff;--red:#b42318}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans Devanagari",sans-serif}
+header{background:var(--green);color:white;padding:20px 16px 18px;position:sticky;top:0;z-index:5;box-shadow:0 2px 10px #0001}
+.head{max-width:760px;margin:auto;display:flex;align-items:center;gap:12px}.logo{font-size:28px}.head h1{font-size:20px;margin:0}.head p{font-size:12px;margin:3px 0 0;opacity:.85}
+main{max-width:760px;margin:auto;padding:16px 12px 36px}.tabs{display:flex;gap:8px;margin-bottom:14px}.tab{flex:1;border:1px solid var(--line);background:white;border-radius:12px;padding:11px 8px;font-weight:700;color:var(--ink)}.tab.active{background:var(--green);border-color:var(--green);color:white}
+.panel{display:none}.panel.active{display:block}.card{background:white;border:1px solid var(--line);border-radius:16px;padding:15px;margin-bottom:13px;box-shadow:0 2px 7px #17291d06}
+h2{font-size:17px;margin:0 0 12px}h3{font-size:14px;margin:0 0 8px}.muted{color:var(--muted);font-size:12px;line-height:1.45}
+label{display:block;font-size:12px;font-weight:700;margin:10px 0 5px}input,select,textarea{width:100%;border:1px solid #cdd9d1;border-radius:10px;padding:11px 12px;font:inherit;font-size:15px;background:white;color:var(--ink)}textarea{min-height:90px;resize:vertical}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1;min-width:0}.btn{border:0;border-radius:11px;padding:12px 14px;font:inherit;font-weight:750;background:var(--green);color:white;cursor:pointer}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.light{background:var(--green2);color:var(--green)}.btn.outline{background:white;border:1px solid var(--line);color:var(--ink)}.btn.red{background:#fff0ef;color:var(--red)}.btn.small{padding:7px 9px;font-size:12px}.full{width:100%;margin-top:10px}
+.voicebox{background:#f1f8f3;border:1px solid #cce4d4;border-radius:13px;padding:12px}.voiceactions{display:flex;gap:8px;margin-top:8px}.voiceactions .btn{flex:1}.product-list{display:grid;gap:8px}.product{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:10px}.product .info{flex:1;min-width:0}.product strong{display:block;font-size:14px}.product small{color:var(--muted)}.price{font-weight:800;white-space:nowrap}
+.item{display:grid;grid-template-columns:minmax(0,1fr) 80px 78px 30px;gap:7px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line)}.item:last-child{border-bottom:0}.item .iname{font-weight:700;font-size:13px}.item small{display:block;color:var(--muted);font-size:11px}.qty{width:100%;padding:8px 4px;text-align:center}.amount{text-align:right;font-size:13px;font-weight:800}.remove{border:0;background:#fff0ef;color:var(--red);border-radius:8px;padding:6px;cursor:pointer}
+.totalrow{display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:2px solid var(--ink);margin-top:10px}.totalrow strong{font-size:25px;color:var(--green)}.receipt{background:white;border:1px dashed #b9c7be;padding:16px;border-radius:12px;font-family:ui-monospace,SFMono-Regular,monospace}.receipt h3{text-align:center;font-size:17px}.receipt .center{text-align:center}.receipt table{width:100%;border-collapse:collapse;font-size:12px}.receipt th,.receipt td{text-align:left;padding:7px 2px;border-bottom:1px dashed #d7dfd9}.receipt th:last-child,.receipt td:last-child{text-align:right}.receipt .grand{font-size:17px;font-weight:900;text-align:right;margin-top:12px}
+.notice{padding:10px 12px;border-radius:10px;background:#fff8e5;color:#684d00;font-size:12px;margin-bottom:12px}.empty{text-align:center;padding:24px 10px;color:var(--muted);font-size:13px}
+footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
+@media(min-width:600px){main{padding:22px 18px}.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}.two .card{height:fit-content}}
+@media print{body{background:white}header,.tabs,#billControls,.no-print,footer{display:none!important}main{padding:0;max-width:none}.panel{display:none!important}#bill.panel.active{display:block!important}.card:not(.printable){display:none!important}.receipt{border:0;padding:0}.card.printable{border:0;box-shadow:none;padding:0}}
+</style>
+</head>
+<body>
+<header><div class="head"><div class="logo">🧾</div><div><h1>Kirana Price Finder</h1><p>Hindi · Hinglish · English | Smart bill maker</p></div></div></header>
+<main>
+<div class="notice">Your product list and bills are saved on this device. Voice input needs a supported browser and may require internet. Always check the recognized items before charging.</div>
+<div class="tabs">
+<button class="tab active" data-tab="bill">🧾 Make Bill</button>
+<button class="tab" data-tab="products">📦 Products & Prices</button>
+</div>
+<section id="bill" class="panel active">
+<div class="card">
+<h2>Speak or type items</h2>
+<p class="muted">Examples: “500 gram badam, 250 gram kaju” · “आधा किलो बादाम और एक किलो किशमिश” · “2 litre oil”</p>
+<div class="voicebox">
+<label for="language">Voice language</label>
+<select id="language"><option value="hi-IN">Hindi (हिन्दी)</option><option value="en-IN">Indian English</option><option value="hinglish">Hinglish (use Hindi or English)</option></select>
+<div class="voiceactions"><button id="micBtn" class="btn">🎙️ Speak</button><button id="stopBtn" class="btn light" disabled>Stop</button></div>
+<p id="voiceStatus" class="muted" aria-live="polite">Tap Speak and say all items in one go.</p>
+</div>
+<label for="query">Or type what the customer wants</label>
+<textarea id="query" placeholder="e.g. 500 gram badam, 250 gram kaju aur 1 kilo kishmish"></textarea>
+<div class="row"><button id="addSpoken" class="btn">Add items to bill</button><button id="clearQuery" class="btn outline">Clear text</button></div>
+<p class="muted">Tip: use product names exactly as saved, or add Hindi/English alternate names in Products & Prices.</p>
+</div>
+<div class="card">
+<h2>Current bill <span id="count" class="muted"></span></h2>
+<div id="billItems"></div>
+<div class="totalrow"><div><span class="muted">Grand total</span><br><span class="muted" id="itemCount">0 items</span></div><strong id="grandTotal">₹0</strong></div>
+<div class="row no-print" style="margin-top:12px"><button id="showReceipt" class="btn">Preview slip</button><button id="newBill" class="btn outline">New bill</button></div>
+</div>
+<div id="receiptCard" class="card printable" hidden>
+<div id="receipt" class="receipt"></div>
+<div id="billControls" class="row" style="margin-top:12px"><button id="printBtn" class="btn">Print / Save PDF</button><button id="hideReceipt" class="btn outline">Close preview</button></div>
+</div>
+</section>
+<section id="products" class="panel">
+<div class="card">
+<h2>Add or update a product</h2>
+<p class="muted">Set the price for the base quantity. For example, price ₹1,000 and unit kg means 500 g costs ₹500.</p>
+<input type="hidden" id="editId">
+<label for="pname">Product name / नाम</label><input id="pname" placeholder="Badam / बादाम">
+<label for="aliases">Nicknames / alternate names (Hindi, English or Hinglish)</label><input id="aliases" placeholder="बादाम, almond, almonds, badam giri"><p class="muted">Add as many names as you like, separated by commas. Any saved name can be typed or spoken to find this same product price.</p>
+<div class="row">
+<div><label for="pprice">Price (₹)</label><input id="pprice" type="number" min="0" step="0.01" placeholder="1000"></div>
+<div><label for="punit">Price is for</label><select id="punit"><option value="kg">1 kilogram (kg)</option><option value="g">100 grams (100 g)</option><option value="l">1 litre (L)</option><option value="ml">100 millilitres (100 ml)</option><option value="piece">1 piece</option><option value="pack">1 pack</option></select></div>
+</div>
+<button id="saveProduct" class="btn full">Save product</button><button id="cancelEdit" class="btn outline full" hidden>Cancel edit</button>
+</div>
+<div class="card"><div class="row"><h2 style="flex:1">Product catalogue</h2><button id="seedDemo" class="btn light small">Add sample products</button></div><input id="searchProducts" placeholder="Search products…" style="margin-bottom:10px"><div id="productsList" class="product-list"></div><p class="muted">Sample products are examples only. Replace them with your store's actual prices.</p></div>
+<div class="card"><h3>Data backup</h3><p class="muted">Export your catalogue to keep a backup, or import a previously exported JSON file.</p><div class="row"><button id="exportData" class="btn light">Export backup</button><label class="btn outline" style="text-align:center;margin:0">Import backup<input id="importData" type="file" accept="application/json" hidden></label></div></div>
+</section>
+</main>
+<footer>Prices are calculated locally from your saved catalogue. Please verify voice recognition and bill amounts before finalizing.</footer>
+<script>
+const $=id=>document.getElementById(id);
+const fmt=n=>'₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}).replace(/\.00$/,'');
+const uid=()=>Math.random().toString(36).slice(2,10);
+const norm=s=>String(s||'').toLowerCase().normalize('NFKC').replace(/[.,!?।]/g,' ').replace(/\s+/g,' ').trim();
+let products=load('kpf_products',[]);
+let bill=load('kpf_bill',[]);
+let recognition=null,finalTranscript='';
+function load(k,d){try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}}
+function persist(){localStorage.setItem('kpf_products',JSON.stringify(products));localStorage.setItem('kpf_bill',JSON.stringify(bill))}
+function priceBase(p){return Number(p.price)||0}
+function unitLabel(p){return ({kg:'kg',g:'100 g',l:'L',ml:'100 ml',piece:'piece',pack:'pack'})[p.unit]||p.unit}
+function divisor(unit){return ({kg:1000,g:100,l:1000,ml:100,piece:1,pack:1})[unit]||1000}
+function amountFor(p,qty,unit){let base=divisor(p.unit),requested=unit==='g'?qty:unit==='ml'?qty:qty;let canonical=unit==='kg'?qty*1000:unit==='g'?qty:unit==='l'?qty*1000:unit==='ml'?qty:qty;return priceBase(p)*canonical/base}
+function productNames(p){return [p.name,...(p.aliases||[]).split(',')].filter(Boolean)}
+function findProduct(name){let n=norm(name);return products.find(p=>productNames(p).some(a=>norm(a)===n))||products.find(p=>productNames(p).some(a=>n.includes(norm(a))||norm(a).includes(n)&&n.length>2))}
+function addLine(p,qty,unit){let canonicalUnit=unit||p.unit;let amount;
+if(p.unit==='kg') amount=Number(p.price)*(canonicalUnit==='kg'?qty:canonicalUnit==='g'?qty/1000:qty);
+else if(p.unit==='g') amount=Number(p.price)*(canonicalUnit==='g'?qty/100:canonicalUnit==='kg'?qty*10:qty);
+else if(p.unit==='l') amount=Number(p.price)*(canonicalUnit==='l'?qty:canonicalUnit==='ml'?qty/1000:qty);
+else if(p.unit==='ml') amount=Number(p.price)*(canonicalUnit==='ml'?qty/100:canonicalUnit==='l'?qty*10:qty);
+else amount=Number(p.price)*qty;
+let existing=bill.find(x=>x.productId===p.id&&x.unit===canonicalUnit);
+if(existing){existing.qty+=qty;existing.amount=calcLine(existing)}else bill.push({id:uid(),productId:p.id,name:p.name,unit:canonicalUnit,qty,baseUnit:p.unit,basePrice:Number(p.price),amount});
+persist();renderBill();
+}
+function calcLine(x){let p={price:x.basePrice,unit:x.baseUnit};let u=x.unit; if(p.unit==='kg')return p.price*(u==='kg'?x.qty:u==='g'?x.qty/1000:x.qty);if(p.unit==='g')return p.price*(u==='g'?x.qty/100:u==='kg'?x.qty*10:x.qty);if(p.unit==='l')return p.price*(u==='l'?x.qty:u==='ml'?x.qty/1000:x.qty);if(p.unit==='ml')return p.price*(u==='ml'?x.qty/100:u==='l'?x.qty*10:x.qty);return p.price*x.qty}
+function renderBill(){
+$('count').textContent=`(${bill.length})`;
+if(!bill.length){$('billItems').innerHTML='<div class="empty">No items yet. Speak or type items above, or add a product below.</div>'}
+else $('billItems').innerHTML=bill.map(x=>`<div class="item"><div class="iname">${esc(x.name)}<small>${fmt(x.basePrice)} / ${esc(unitLabel({unit:x.baseUnit}))}</small></div><div><input class="qty" aria-label="Quantity for ${esc(x.name)}" type="number" min="0.001" step="any" value="${x.qty}" data-qty="${x.id}"><small style="text-align:center">${esc(x.unit)}</small></div><div class="amount">${fmt(calcLine(x))}</div><button class="remove" data-remove="${x.id}" aria-label="Remove ${esc(x.name)}">×</button></div>`).join('');
+let total=bill.reduce((s,x)=>s+calcLine(x),0);$('grandTotal').textContent=fmt(total);$('itemCount').textContent=`${bill.length} ${bill.length===1?'line item':'line items'}`;persist();
+}
+function renderProducts(){
+let q=norm($('searchProducts').value);let shown=products.filter(p=>!q||productNames(p).some(a=>norm(a).includes(q)));
+$('productsList').innerHTML=shown.length?shown.map(p=>`<div class="product"><div class="info"><strong>${esc(p.name)}</strong><small>${esc((p.aliases||'')?'Also known as: '+p.aliases+' · ':'')}${fmt(p.price)} / ${esc(unitLabel(p))}</small></div><button class="btn light small" data-add="${p.id}">Add</button><button class="btn outline small" data-edit="${p.id}">Edit</button><button class="btn red small" data-delete="${p.id}">×</button></div>`).join(''):'<div class="empty">No products yet. Add one above.</div>';
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function resetProduct(){$('editId').value='';$('pname').value='';$('aliases').value='';$('pprice').value='';$('punit').value='kg';$('saveProduct').textContent='Save product';$('cancelEdit').hidden=true}
+$('saveProduct').onclick=()=>{let name=$('pname').value.trim(),price=Number($('pprice').value);if(!name||$('pprice').value===''||!Number.isFinite(price)||price<0){alert('Enter a product name and a valid price.');return}let id=$('editId').value||uid();let p={id,name,aliases:$('aliases').value.trim(),price,unit:$('punit').value};let idx=products.findIndex(x=>x.id===id);if(idx>=0)products[idx]=p;else products.push(p);persist();resetProduct();renderProducts();alert('Product saved.');};
+$('cancelEdit').onclick=resetProduct;
+$('productsList').addEventListener('click',e=>{let a=e.target.closest('[data-add]'),ed=e.target.closest('[data-edit]'),del=e.target.closest('[data-delete]');if(a){let p=products.find(x=>x.id===a.dataset.add);if(p){addLine(p,1,p.unit==='kg'?'kg':p.unit==='l'?'l':p.unit);document.querySelector('[data-tab="bill"]').click()}}if(ed){let p=products.find(x=>x.id===ed.dataset.edit);if(!p)return;$('editId').value=p.id;$('pname').value=p.name;$('aliases').value=p.aliases||'';$('pprice').value=p.price;$('punit').value=p.unit;$('saveProduct').textContent='Update product';$('cancelEdit').hidden=false;window.scrollTo({top:0,behavior:'smooth'})}if(del){if(confirm('Delete this product? Existing bill lines keep their saved price.')){products=products.filter(x=>x.id!==del.dataset.delete);persist();renderProducts()}}});
+$('billItems').addEventListener('change',e=>{let el=e.target.closest('[data-qty]');if(!el)return;let x=bill.find(x=>x.id===el.dataset.qty),q=Number(el.value);if(!x)return;if(!Number.isFinite(q)||q<=0){alert('Quantity must be greater than zero.');renderBill();return}x.qty=q;x.amount=calcLine(x);persist();renderBill()});
+$('billItems').addEventListener('click',e=>{let el=e.target.closest('[data-remove]');if(el){bill=bill.filter(x=>x.id!==el.dataset.remove);persist();renderBill()}});
+function parseQty(s){let n=norm(s);const nums={'half':.5,'aadha':.5,'आधा':.5,'paav':.25,'pav':.25,'पाव':.25,'sawa':1.25,'डेढ़':1.5,'dedh':1.5,'dhai':2.5,'ढाई':2.5,'ek':1,'एक':1,'do':2,'दो':2,'teen':3,'तीन':3,'chaar':4,'चार':4,'paanch':5,'पांच':5,'पाँच':5};
+let m=n.match(/(\d+(?:\.\d+)?|half|aadha|आधा|paav|pav|पाव|sawa|डेढ़|dedh|dhai|ढाई|ek|एक|do|दो|teen|तीन|chaar|चार|paanch|पांच|पाँच)\s*(kg|kgs|kilo|kilogram|किलो|किलोग्राम|g|gm|gram|grams|ग्राम|ग्रॅम|l|litre|liter|लीटर|ml|millilitre|milliliter|मिलीलीटर|piece|pieces|pc|pcs|नग|पीस)?/i);
+if(!m)return null;let raw=m[1].toLowerCase();let q=Number(raw);if(!Number.isFinite(q))q=nums[raw]??nums[raw.toLowerCase()];if(!Number.isFinite(q))return null;
+let u=(m[2]||'').toLowerCase();if(['kg','kgs','kilo','kilogram','किलो','किलोग्राम'].includes(u))return {qty:q,unit:'kg',length:m[0].length};if(['g','gm','gram','grams','ग्राम','ग्रॅम'].includes(u))return {qty:q,unit:'g',length:m[0].length};if(['l','litre','liter','लीटर'].includes(u))return {qty:q,unit:'l',length:m[0].length};if(['ml','millilitre','milliliter','मिलीलीटर'].includes(u))return {qty:q,unit:'ml',length:m[0].length};if(['piece','pieces','pc','pcs','नग','पीस'].includes(u))return {qty:q,unit:'piece',length:m[0].length};return {qty:q,unit:null,length:m[0].length}}
+function parseItems(text){
+let input=String(text||'').replace(/और|और फिर|तथा|plus|and/gi,',').replace(/[;।\n]+/g,',');let chunks=input.split(/[,]+/).map(s=>s.trim()).filter(Boolean);let added=0,unknown=[];
+for(let chunk of chunks){let q=parseQty(chunk);let p=null,qty=1,unit=null,productPart=chunk;
+if(q){qty=q.qty;unit=q.unit;productPart=chunk.slice(q.length).trim()}else{let rev=[...products].sort((a,b)=>Math.max(...productNames(b).map(x=>norm(x).length))-Math.max(...productNames(a).map(x=>norm(x).length)));p=rev.find(x=>productNames(x).some(a=>norm(chunk).includes(norm(a))));if(p){let before=chunk.slice(0,chunk.toLowerCase().indexOf(p.name.toLowerCase())).trim();let q2=parseQty(before);if(q2){qty=q2.qty;unit=q2.unit}}}
+if(!p)p=findProduct(productPart);
+if(!p){unknown.push(chunk);continue}
+if(!unit){unit=p.unit==='kg'?'kg':p.unit==='l'?'l':p.unit}
+addLine(p,qty,unit);added++;
+}
+let msg=added?`${added} item line(s) added.`:'No matching products found.';
+if(unknown.length)msg+=` Not matched: ${unknown.join(', ')}. Add these products or check spelling.`;
+$('voiceStatus').textContent=msg;
+if(unknown.length)alert(msg);
+}
+$('addSpoken').onclick=()=>{let t=$('query').value.trim();if(!t){alert('Speak or type the items first.');return}parseItems(t);$('query').value=''};
+$('clearQuery').onclick=()=>{$('query').value=''};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));if(b.dataset.tab==='products')renderProducts()});
+$('searchProducts').oninput=renderProducts;
+$('micBtn').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('voiceStatus').textContent='Voice recognition is not available in this browser. Try Chrome on Android, or type the items.';return}recognition=new SR();recognition.continuous=false;recognition.interimResults=true;recognition.lang=$('language').value==='hinglish'?'hi-IN':$('language').value;finalTranscript='';$('micBtn').disabled=true;$('stopBtn').disabled=false;$('voiceStatus').textContent='Listening… speak your items now.';recognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++){t+=e.results[i][0].transcript;if(e.results[i].isFinal)finalTranscript+=e.results[i][0].transcript+' '}$('query').value=(finalTranscript+t).trim()};recognition.onerror=e=>{$('voiceStatus').textContent='Voice error: '+e.error+'. You can type instead.'};recognition.onend=()=>{$('micBtn').disabled=false;$('stopBtn').disabled=true;if($('query').value.trim())$('voiceStatus').textContent='Recognized text is ready. Check it, then tap Add items to bill.'};recognition.start()};
+$('stopBtn').onclick=()=>{if(recognition)recognition.stop()};
+$('showReceipt').onclick=()=>{if(!bill.length){alert('Add at least one item first.');return}renderReceipt();$('receiptCard').hidden=false;$('receiptCard').scrollIntoView({behavior:'smooth',block:'start'})};
+$('hideReceipt').onclick=()=>$('receiptCard').hidden=true;
+$('printBtn').onclick=()=>window.print();
+function renderReceipt(){let total=bill.reduce((s,x)=>s+calcLine(x),0);$('receipt').innerHTML=`<h3>KIRANA STORE</h3><div class="center">CUSTOMER BILL</div><div class="center">${new Date().toLocaleString('en-IN')}</div><hr><table><thead><tr><th>Item</th><th>Qty</th><th>Amount</th></tr></thead><tbody>${bill.map(x=>`<tr><td>${esc(x.name)}<br><small>${fmt(x.basePrice)}/${esc(unitLabel({unit:x.baseUnit}))}</small></td><td>${x.qty} ${esc(x.unit)}</td><td>${fmt(calcLine(x))}</td></tr>`).join('')}</tbody></table><div class="grand">TOTAL: ${fmt(total)}</div><p class="center">Thank you! Visit again.</p>`}
+$('newBill').onclick=()=>{if(!bill.length||confirm('Start a new bill? Current items will be cleared.')){bill=[];$('receiptCard').hidden=true;persist();renderBill()}};
+$('seedDemo').onclick=()=>{if(products.length&&!confirm('Add sample products to your existing catalogue?'))return;let demo=[{name:'Badam',aliases:'बादाम, almond, almonds, badam giri',price:1000,unit:'kg'},{name:'Kaju',aliases:'काजू, cashew, cashews',price:800,unit:'kg'},{name:'Kishmish',aliases:'किशमिश, raisins',price:400,unit:'kg'},{name:'Aata',aliases:'आटा, atta, wheat flour',price:40,unit:'kg'},{name:'Chawal',aliases:'चावल, rice',price:60,unit:'kg'},{name:'Sarson tel',aliases:'सरसों तेल, mustard oil',price:160,unit:'l'}];for(let d of demo){if(!products.some(p=>norm(p.name)===norm(d.name)))products.push({...d,id:uid()})}persist();renderProducts();alert('Sample products added. These are example prices—edit them to match your store.')};
+$('exportData').onclick=()=>{let blob=new Blob([JSON.stringify({products,bill,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});let a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kirana-price-finder-backup.json';a.click();URL.revokeObjectURL(a.href)};
+$('importData').onchange=async e=>{try{let data=JSON.parse(await e.target.files[0].text());if(!Array.isArray(data.products))throw Error();if(confirm('Replace current product catalogue and bill with imported backup?')){products=data.products;bill=Array.isArray(data.bill)?data.bill:[];persist();renderProducts();renderBill();alert('Backup imported.')}}catch{alert('Could not import this backup file.')}e.target.value=''};
+renderBill();renderProducts();
+if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body>
+</html>
