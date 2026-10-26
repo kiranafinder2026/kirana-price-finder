@@ -38,7 +38,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
 <section id="bill" class="panel active">
 <div class="card">
 <h2>Speak or type items</h2>
-<p class="muted">To bill a saved product, open <b>Products &amp; Prices</b> and tap <b>Add</b> beside it. It will appear in this bill.</p>
+<p class="muted">Speak in Hindi, Hinglish, or English. Name several saved products in one sentence, with each quantity before or after its name. Say “add” first to add them automatically, or tap <b>Add items to bill</b> after checking the text. Matched catalogue names and common Hindi quantities are shown in English; unmatched words may stay as spoken.</p>
 <p class="muted">Examples: “500 gram badam, 250 gram kaju” · “आधा किलो बादाम और एक किलो किशमिश” · “2 litre oil”</p>
 <div class="voicebox">
 <label for="language">Voice language</label>
@@ -84,7 +84,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:12px}
 const $=id=>document.getElementById(id);
 const fmt=n=>'₹'+Number(n||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2}).replace(/\.00$/,'');
 const uid=()=>Math.random().toString(36).slice(2,10);
-const norm=s=>String(s||'').toLowerCase().normalize('NFKC').replace(/[.,!?।]/g,' ').replace(/\s+/g,' ').trim();
+const norm=s=>String(s||'').toLowerCase().normalize('NFKC').replace(/([0-9])[.,](?=[0-9])/g,'$1.').replace(/[!?।,]/g,' ').replace(/\s+/g,' ').trim();
 let products=load('kpf_products',[]);
 let bill=load('kpf_bill',[]);
 let recognition=null,finalTranscript='';
@@ -124,30 +124,28 @@ $('cancelEdit').onclick=resetProduct;
 $('productsList').addEventListener('click',e=>{let a=e.target.closest('[data-add]'),ed=e.target.closest('[data-edit]'),del=e.target.closest('[data-delete]');if(a){let p=products.find(x=>x.id===a.dataset.add);if(p){addLine(p,1,p.unit==='kg'?'kg':p.unit==='l'?'l':p.unit);document.querySelector('[data-tab="bill"]').click()}}if(ed){let p=products.find(x=>x.id===ed.dataset.edit);if(!p)return;$('editId').value=p.id;$('pname').value=p.name;$('aliases').value=p.aliases||'';$('pprice').value=p.price;$('punit').value=p.unit;$('saveProduct').textContent='Update product';$('cancelEdit').hidden=false;window.scrollTo({top:0,behavior:'smooth'})}if(del){if(confirm('Delete this product? Existing bill lines keep their saved price.')){products=products.filter(x=>x.id!==del.dataset.delete);persist();renderProducts()}}});
 $('billItems').addEventListener('change',e=>{let el=e.target.closest('[data-qty]');if(!el)return;let x=bill.find(x=>x.id===el.dataset.qty),q=Number(el.value);if(!x)return;if(!Number.isFinite(q)||q<=0){alert('Quantity must be greater than zero.');renderBill();return}x.qty=q;x.amount=calcLine(x);persist();renderBill()});
 $('billItems').addEventListener('click',e=>{let el=e.target.closest('[data-remove]');if(el){bill=bill.filter(x=>x.id!==el.dataset.remove);persist();renderBill()}});
-function parseQty(s){let n=norm(s);const nums={'half':.5,'aadha':.5,'आधा':.5,'paav':.25,'pav':.25,'पाव':.25,'sawa':1.25,'डेढ़':1.5,'dedh':1.5,'dhai':2.5,'ढाई':2.5,'ek':1,'एक':1,'do':2,'दो':2,'teen':3,'तीन':3,'chaar':4,'चार':4,'paanch':5,'पांच':5,'पाँच':5};
-let m=n.match(/(\d+(?:\.\d+)?|half|aadha|आधा|paav|pav|पाव|sawa|डेढ़|dedh|dhai|ढाई|ek|एक|do|दो|teen|तीन|chaar|चार|paanch|पांच|पाँच)\s*(kg|kgs|kilo|kilogram|किलो|किलोग्राम|g|gm|gram|grams|ग्राम|ग्रॅम|l|litre|liter|लीटर|ml|millilitre|milliliter|मिलीलीटर|piece|pieces|pc|pcs|नग|पीस)?/i);
-if(!m)return null;let raw=m[1].toLowerCase();let q=Number(raw);if(!Number.isFinite(q))q=nums[raw]??nums[raw.toLowerCase()];if(!Number.isFinite(q))return null;
-let u=(m[2]||'').toLowerCase();if(['kg','kgs','kilo','kilogram','किलो','किलोग्राम'].includes(u))return {qty:q,unit:'kg',length:m[0].length};if(['g','gm','gram','grams','ग्राम','ग्रॅम'].includes(u))return {qty:q,unit:'g',length:m[0].length};if(['l','litre','liter','लीटर'].includes(u))return {qty:q,unit:'l',length:m[0].length};if(['ml','millilitre','milliliter','मिलीलीटर'].includes(u))return {qty:q,unit:'ml',length:m[0].length};if(['piece','pieces','pc','pcs','नग','पीस'].includes(u))return {qty:q,unit:'piece',length:m[0].length};return {qty:q,unit:null,length:m[0].length}}
-function parseItems(text){
-let input=String(text||'').replace(/और|और फिर|तथा|plus|and/gi,',').replace(/[;।\n]+/g,',');let chunks=input.split(/[,]+/).map(s=>s.trim()).filter(Boolean);let added=0,unknown=[];
-for(let chunk of chunks){let q=parseQty(chunk);let p=null,qty=1,unit=null,productPart=chunk;
-if(q){qty=q.qty;unit=q.unit;productPart=chunk.slice(q.length).trim()}else{let rev=[...products].sort((a,b)=>Math.max(...productNames(b).map(x=>norm(x).length))-Math.max(...productNames(a).map(x=>norm(x).length)));p=rev.find(x=>productNames(x).some(a=>norm(chunk).includes(norm(a))));if(p){let before=chunk.slice(0,chunk.toLowerCase().indexOf(p.name.toLowerCase())).trim();let q2=parseQty(before);if(q2){qty=q2.qty;unit=q2.unit}}}
-if(!p)p=findProduct(productPart);
-if(!p){unknown.push(chunk);continue}
-if(!unit){unit=p.unit==='kg'?'kg':p.unit==='l'?'l':p.unit}
-addLine(p,qty,unit);added++;
+function parseQuantities(text){
+const nums={'half':.5,'aadha':.5,'आधा':.5,'paav':.25,'pav':.25,'पाव':.25,'sawa':1.25,'डेढ़':1.5,'dedh':1.5,'dhai':2.5,'ढाई':2.5,'ek':1,'एक':1,'do':2,'दो':2,'teen':3,'तीन':3,'chaar':4,'चार':4,'paanch':5,'पांच':5,'पाँच':5};
+const units='kilograms?|kgs?|kilos?|किलोग्राम|किलो|millilit(?:er|re)s?|ml|मिलीलीटर|grams?|gms?|g|ग्रॅम|ग्राम|lit(?:er|re)s?|l|लीटर|pieces?|pcs?|pc|पीस|नग';
+const re=new RegExp('(^|\\s)(\\d+(?:\\.\\d+)?|half|aadha|आधा|paav|pav|पाव|sawa|डेढ़|dedh|dhai|ढाई|ek|एक|do|दो|teen|तीन|chaar|चार|paanch|पांच|पाँच)(?:\\s*('+units+'))?(?=$|\\s)','giu');
+let matches=[],m;
+while((m=re.exec(text))){let raw=m[2].toLowerCase(),qty=Number(raw);if(!Number.isFinite(qty))qty=nums[raw];if(!Number.isFinite(qty))continue;let u=norm(m[3]||''),unit=null;
+if(['kg','kgs','kilo','kilos','kilogram','kilograms','किलो','किलोग्राम'].includes(u))unit='kg';else if(['g','gm','gms','gram','grams','ग्राम','ग्रॅम'].includes(u))unit='g';else if(['l','litre','litres','liter','liters','लीटर'].includes(u))unit='l';else if(['ml','millilitre','millilitres','milliliter','milliliters','मिलीलीटर'].includes(u))unit='ml';else if(['piece','pieces','pc','pcs','नग','पीस'].includes(u))unit='piece';
+let start=m.index+m[1].length;matches.push({qty,unit,start,end:m.index+m[0].length-m[1].length})}
+return matches;
 }
-let msg=added?`${added} item line(s) added.`:'No matching products found.';
-if(unknown.length)msg+=` Not matched: ${unknown.join(', ')}. Add these products or check spelling.`;
-$('voiceStatus').textContent=msg;
-if(unknown.length)alert(msg);
-}
-$('addSpoken').onclick=()=>{let t=$('query').value.trim();if(!t){alert('Speak or type the items first.');return}parseItems(t);$('query').value=''};
-$('clearQuery').onclick=()=>{$('query').value=''};
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));if(b.dataset.tab==='products')renderProducts()});
+function escapeRegExp(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
+function findProductMentions(text){let candidates=[];for(const p of products)for(const alias of productNames(p)){let name=norm(alias);if(!name)continue;let re=new RegExp('(^|[^\\p{L}\\p{N}])('+escapeRegExp(name)+')(?=$|[^\\p{L}\\p{N}])','giu'),m;while((m=re.exec(text))){let start=m.index+m[1].length;candidates.push({product:p,start,end:start+m[2].length})}}candidates.sort((a,b)=>a.start-b.start||(b.end-b.start)-(a.end-a.start));let mentions=[];for(const c of candidates)if(!mentions.some(m=>c.start<m.end&&c.end>m.start))mentions.push(c);return mentions.sort((a,b)=>a.start-b.start)}
+function englishProductName(p){let names=productNames(p);return String(names.find(n=>/^[a-z0-9][a-z0-9 '&-]*$/i.test(String(n).trim()))||p.name||'').trim()}
+function replaceSpokenWord(text,word,replacement){let re=new RegExp('(^|[^\\p{L}\\p{N}])'+escapeRegExp(word)+'(?=$|[^\\p{L}\\p{N}])','giu');return text.replace(re,(_,before)=>before+replacement)}
+function englishifyTranscript(text){let out=String(text||'').normalize('NFKC'),aliases=[];for(const p of products)for(const alias of productNames(p)){let name=String(alias||'').trim();if(name)aliases.push({name,english:englishProductName(p)})}aliases.sort((a,b)=>b.name.length-a.name.length);for(const a of aliases){let re=new RegExp('(^|[^\\p{L}\\p{N}])('+escapeRegExp(a.name)+')(?=$|[^\\p{L}\\p{N}])','giu');out=out.replace(re,(_,before)=>before+a.english)}out=out.replace(/[०-९]/g,ch=>'०१२३४५६७८९'.indexOf(ch)).replace(/किलोग्राम|किलो/giu,'kg').replace(/ग्राम|ग्रॅम/giu,'grams').replace(/लीटर/giu,'litres').replace(/मिलीलीटर/giu,'ml').replace(/पीस|नग/giu,'pieces');for(const [word,replacement] of [['आधा','0.5'],['डेढ़','1.5'],['ढाई','2.5'],['एक','1'],['दो','2'],['तीन','3'],['चार','4'],['पाँच','5'],['पांच','5']])out=replaceSpokenWord(out,word,replacement);return out.replace(/\s+/g,' ').trim()}
+function parseItems(text){let input=String(text||'').replace(/^\s*(?:(?:please\s+)?(?:add|include|put|जोड़ो|जोड़िए|जोड़ें|डालो)\s*)+/iu,'').replace(/\s+(?:और फिर|और|तथा|plus|and|aur|or|या)\s+/giu,',').replace(/[;।\n]+/g,',').replace(/,{2,}/g,',');let chunks=input.split(',').map(s=>norm(s)).filter(Boolean),added=0,unknown=[];for(const chunk of chunks){let mentions=findProductMentions(chunk);if(!mentions.length){unknown.push(chunk);continue}let quantities=parseQuantities(chunk),taken=new Set(),assigned=new Map();for(const q of quantities){let choices=mentions.map((m,index)=>({m,index})).filter(x=>!taken.has(x.index)).map(x=>{let distance=q.end<=x.m.start?x.m.start-q.end:q.start>=x.m.end?q.start-x.m.end:0;let followsProduct=q.start>=x.m.end?0:1;return{...x,distance,followsProduct}}).sort((a,b)=>a.distance-b.distance||a.followsProduct-b.followsProduct||a.m.start-b.m.start);if(choices.length){let choice=choices[0];taken.add(choice.index);assigned.set(choice.index,q)}}for(let i=0;i<mentions.length;i++){let p=mentions[i].product,q=assigned.get(i),unit=q?.unit||(p.unit==='kg'?'kg':p.unit==='l'?'l':p.unit);addLine(p,q?.qty??1,unit);added++}}let msg=added?`${added} item(s) added to the bill.`:'No saved products matched. Check the product name or add it as an alternate name in Products & Prices.';if(unknown.length&&added)msg+=` Not matched: ${unknown.join(', ')}.`;$('voiceStatus').textContent=msg;if(!added||unknown.length)alert(msg);return added}
+function isAddCommand(text){return /^(?:please\s+)?(?:add|include|put|जोड़ो|जोड़िए|जोड़ें|डालो)(?:\s|$)/iu.test(norm(text))}
+function submitItems(text){try{return parseItems(text)}catch(error){console.error(error);$('voiceStatus').textContent='I could not process those items. Please check the product names and try again.';alert('I could not process those items. Please check the product names and try again.');return 0}}
+$('addSpoken').onclick=()=>{let t=$('query').value.trim();if(!t){alert('Speak or type the items first.');return}submitItems(t);$('query').value=''};
+$('clearQuery').onclick=()=>{$('query').value=''};document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.panel').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));if(b.dataset.tab==='products')renderProducts()});
 $('searchProducts').oninput=renderProducts;
-$('micBtn').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('voiceStatus').textContent='Voice recognition is not available in this browser. Try Chrome on Android, or type the items.';return}recognition=new SR();recognition.continuous=false;recognition.interimResults=true;recognition.lang=$('language').value==='hinglish'?'hi-IN':$('language').value;finalTranscript='';$('micBtn').disabled=true;$('stopBtn').disabled=false;$('voiceStatus').textContent='Listening… speak your items now.';recognition.onresult=e=>{let t='';for(let i=e.resultIndex;i<e.results.length;i++){t+=e.results[i][0].transcript;if(e.results[i].isFinal)finalTranscript+=e.results[i][0].transcript+' '}$('query').value=(finalTranscript+t).trim()};recognition.onerror=e=>{$('voiceStatus').textContent='Voice error: '+e.error+'. You can type instead.'};recognition.onend=()=>{$('micBtn').disabled=false;$('stopBtn').disabled=true;if($('query').value.trim())$('voiceStatus').textContent='Recognized text is ready. Check it, then tap Add items to bill.'};recognition.start()};
-$('stopBtn').onclick=()=>{if(recognition)recognition.stop()};
+$('micBtn').onclick=()=>{const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){$('voiceStatus').textContent='Voice recognition is not available in this browser. Try Chrome on Android, or type the items.';return}recognition=new SR();recognition.continuous=false;recognition.interimResults=true;recognition.maxAlternatives=1;recognition.lang=$('language').value==='hinglish'?'hi-IN':$('language').value;$('micBtn').disabled=true;$('stopBtn').disabled=false;$('voiceStatus').textContent='Listening… speak your items now.';recognition.onresult=e=>{let parts=[];for(let i=0;i<e.results.length;i++){let part=e.results[i][0].transcript.trim();if(part)parts.push(part)}$('query').value=englishifyTranscript(parts.join(' ').replace(/\s+/g,' ').trim())};recognition.onerror=e=>{$('voiceStatus').textContent='Voice error: '+e.error+'. You can type instead.'};recognition.onnomatch=()=>{$('voiceStatus').textContent='I could not recognize that. Try speaking closer to the microphone or type the items.'};recognition.onend=()=>{$('micBtn').disabled=false;$('stopBtn').disabled=true;let text=$('query').value.trim();if(!text)return;if(isAddCommand(text)){$('voiceStatus').textContent='Adding the spoken items…';submitItems(text);$('query').value=''}else $('voiceStatus').textContent='Recognized text is ready. Check it, then tap Add items to bill.'};try{recognition.start()}catch(error){$('micBtn').disabled=false;$('stopBtn').disabled=true;$('voiceStatus').textContent='Could not start voice recognition. Please try again or type the items.'}};$('stopBtn').onclick=()=>{if(recognition)recognition.stop()};
 $('showReceipt').onclick=()=>{if(!bill.length){alert('Add at least one item first.');return}renderReceipt();$('receiptCard').hidden=false;$('receiptCard').scrollIntoView({behavior:'smooth',block:'start'})};
 $('hideReceipt').onclick=()=>$('receiptCard').hidden=true;
 $('printBtn').onclick=()=>window.print();
@@ -161,4 +159,9 @@ if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.s
 </script>
 </body>
 </html>
+
+
+
+
+
 

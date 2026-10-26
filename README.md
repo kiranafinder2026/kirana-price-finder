@@ -12,11 +12,12 @@ Open `index.html` in a browser for typing and calculation. Voice recognition and
 4. Allow microphone access when prompted to use voice input.
 
 ## Important notes
-- **Make Bill** opens the bill screen. To add a saved item, open **Products & Prices** and tap **Add** beside that item; it will be added to the current bill.
+- Speak one or several saved products in a sentence, with each quantity before or after its product name. Say “add” first to add them automatically, or review the text and choose **Add items to bill**. Matched product aliases and common Hindi quantity words are normalized locally; unmatched speech may remain in its recognized language.
 - When publishing an update, replace the site files at the same GitHub Pages address. The updated service worker refreshes cached app files while leaving the catalogue in place. Do not clear browser storage or uninstall the app.
 - All catalogue and bill data is stored in this browser on this device; it is not synchronized across phones.
 - Voice recognition depends on browser/device support and may require internet. Hinglish mode uses Hindi recognition as a best effort; Hindi/English mixed speech may need correction.
 - Check the recognized text and the bill before charging a customer.
 - Demo prices are examples only. Use **Add sample products** and edit the prices, or add your actual catalogue.
 - The parser is a starter implementation and should be tested with your shop's product names, regional pronunciations, and common quantities before daily use.
+
 
