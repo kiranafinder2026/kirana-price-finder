@@ -94,7 +94,7 @@ function priceBase(p){return Number(p.price)||0}
 function unitLabel(p){return ({kg:'kg',g:'100 g',l:'L',ml:'100 ml',piece:'piece',pack:'pack'})[p.unit]||p.unit}
 function divisor(unit){return ({kg:1000,g:100,l:1000,ml:100,piece:1,pack:1})[unit]||1000}
 function amountFor(p,qty,unit){let base=divisor(p.unit),requested=unit==='g'?qty:unit==='ml'?qty:qty;let canonical=unit==='kg'?qty*1000:unit==='g'?qty:unit==='l'?qty*1000:unit==='ml'?qty:qty;return priceBase(p)*canonical/base}
-function productNames(p){return [p.name,...(p.aliases||[]).split(',')].filter(Boolean)}
+function productNames(p){let aliases=Array.isArray(p.aliases)?p.aliases:String(p.aliases||'').split(',');return [p.name,...aliases].filter(Boolean)}
 function findProduct(name){let n=norm(name);return products.find(p=>productNames(p).some(a=>norm(a)===n))||products.find(p=>productNames(p).some(a=>n.includes(norm(a))||norm(a).includes(n)&&n.length>2))}
 function addLine(p,qty,unit){let canonicalUnit=unit||p.unit;let amount;
 if(p.unit==='kg') amount=Number(p.price)*(canonicalUnit==='kg'?qty:canonicalUnit==='g'?qty/1000:qty);
@@ -161,3 +161,4 @@ if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.s
 </script>
 </body>
 </html>
+
