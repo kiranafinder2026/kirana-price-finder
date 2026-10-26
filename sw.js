@@ -1,4 +1,4 @@
-const CACHE='kirana-price-finder-v3';
+const CACHE='kirana-price-finder-v4';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./icon.svg'];
 
 self.addEventListener('install',event=>{
@@ -31,4 +31,5 @@ self.addEventListener('fetch',event=>{
     }
   })());
 });
+
 
